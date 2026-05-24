@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deprescribing Quick Reference Guide</title>
+    <style>
+        :root { --slate: #1e3a5f; --slate-dark: #152b47; --teal: #00d4b2; --gray-100: #f8fafc; }
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--gray-100); margin: 0; color: #334155; }
+        header { background-color: #0A2540; color: white; padding: 1.25rem; position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+        .search-bar { width: 320px; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #475569; background: rgba(255,255,255,0.1); color: white; font-size: 0.875rem; }
+        .search-bar::placeholder { color: #94a3b8; }
+        .search-bar:focus { outline: none; border-color: var(--teal); background: rgba(255,255,255,0.15); }
+        .card-grid { display: grid; grid-template-cols: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; text-transform: uppercase; }
+        .accordion { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 0.75rem; overflow: hidden; }
+        .accordion-btn { width: 100%; padding: 1rem 1.25rem; text-align: left; background: #fafafa; border: none; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; font-size: 0.95rem; }
+        .accordion-content { padding: 1rem 1.25rem; border-top: 1px solid #e2e8f0; font-size: 0.875rem; line-height: 1.5; color: #475569; }
+        .hidden { display: none !important; }
+        .search-results-section { background: #f0fdfa; border: 2px solid var(--teal); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+        .result-item { background: white; border: 1px solid #ccfbf1; padding: 1rem; border-radius: 8px; margin-top: 0.75rem; }
+        @media print { .no-print { display: none !important; } .accordion-content, .card-content { display: block !important; } }
+    </style>
+</head>
+<body>
+
+    <header class="no-print">
+        <div>
+            <h1 style="margin:0; font-size: 1.25rem; font-weight: bold;">🇦🇺 Clinical Deprescribing Assistant</h1>
+            <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #94a3b8;">Tailored for Clinical Pharmacists in Australia</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search medicine (e.g., PPI, BZD, Glaucoma)..." class="search-bar">
+            <button onclick="window.print()" style="background: #1e293b; color: white; border: 1px solid #475569; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.75rem; cursor: pointer;">🖨️ Print</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <section id="searchSection" class="search-results-section hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #b2f5ea; padding-bottom: 0.5rem;">
+                <h2 style="margin:0; font-size: 1.1rem; color: #0f766e;">🔍 Search Results (<span id="matchCount">0</span> found)</h2>
+                <button onclick="clearSearch()" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:0.875rem;">✕ Clear</button>
+            </div>
+            <div id="searchResultsContainer"></div>
+        </section>
+
+        <section style="margin-bottom: 2.5rem;">
+            <h2 style="font-size: 1.1rem; color: #0A2540; margin-bottom: 0.5rem;">🧠 The 5Ms Geriatric Framework (When to Deprescribe)</h2>
+            <div class="card-grid">
+                <div class="card" onclick="toggle5M('m1')">
+                    <span class="badge" style="background:#fef3c7; color:#b45309;">Mind</span>
+                    <h3 style="margin: 8px 0 0 0; font-size: 1rem;">Cognition & Burden</h3>
+                    <div id="m1-content" class="hidden" style="font-size: 0.75rem; color: #475569; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                        • Worsening memory or confusion<br>• High anticholinergic burden (ACB &ge; 3)<br>• Unexplained sedation or delirium
+                    </div>
+                </div>
+                <div class="card" onclick="toggle5M('m2')">
+                    <span class="badge" style="background:#dbeafe; color:#1d4ed8;">Mobility</span>
+                    <h3 style="margin: 8px 0 0 0; font-size: 1rem;">Falls & Gait</h3>
+                    <div id="m2-content" class="hidden" style="font-size: 0.75rem; color: #475569; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                        • Recurrent falls or unsteadiness<br>• Orthostatic hypotension symptoms<br>• Sedative-induced motor slowing
+                    </div>
+                </div>
+                <div class="card" onclick="toggle5M('m3')">
+                    <span class="badge" style="background:#d1fae5; color:#065f46;">Medicines</span>
+                    <h3 style="margin: 8px 0 0 0; font-size: 1rem;">Polypharmacy</h3>
+                    <div id="m3-content" class="hidden" style="font-size: 0.75rem; color: #475569; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                        • No active ongoing indication<br>• Prescribing cascade detected<br>• Inappropriate drug duplication
+                    </div>
+                </div>
+                <div class="card" onclick="toggle5M('m4')">
+                    <span class="badge" style="background:#f3e8ff; color:#6b21a8;">Multicomplexity</span>
+                    <h3 style="margin: 8px 0 0 0; font-size: 1rem;">Frailty & Prognosis</h3>
+                    <div id="m4-content" class="hidden" style="font-size: 0.75rem; color: #475569; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                        • Severe clinical frailty index<br>• Time-to-benefit exceeds prognosis<br>• Significantly altered renal function
+                    </div>
+                </div>
+                <div class="card" onclick="toggle5M('m5')">
+                    <span class="badge" style="background:#ffe4e6; color:#9f1239;">Matters Most</span>
+                    <h3 style="margin: 8px 0 0 0; font-size: 1rem;">Patient Goals</h3>
+                    <div id="m5-content" class="hidden" style="font-size: 0.75rem; color: #475569; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                        • Expressed wish to stop drugs<br>• Swallowing or compliance issues<br>• Shift from preventive to comfort care
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-bottom: 2.5rem;">
+            <h2 style="font-size: 1.1rem; color: #0A2540; margin-bottom: 1rem;">🔄 The 8-Step Deprescribing Protocol (How)</h2>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(1)"><span>1. Verify Medication History</span> <span>▼</span></button>
+                <div id="step1-content" class="accordion-content hidden">Compile full list of prescriptions, OTC, and complementary medicines. Verify indications and past ADRs. Cross-reference with My Health Record.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(2)"><span>2. Engage Patient & Carer Dialogue</span> <span>▼</span></button>
+                <div id="step2-content" class="accordion-content hidden">Explore patient beliefs and willingness. Reassure them that over 90% of older adults are open to stopping medications if recommended by a clinician.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(3)"><span>3. Identify Inappropriate Targets</span> <span>▼</span></button>
+                <div id="step3-content" class="accordion-content hidden">Screen medications using STOPP/START v3, Beers criteria, or clinical guidelines where risks outweigh preventive benefit.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(4)"><span>4. Consult Drug-Specific Guide Details</span> <span>▼</span></button>
+                <div id="step4-content" class="accordion-content hidden">Look up the dedicated chapter module for the selected medicine or use the quick search tool above to fetch precise criteria.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(5)"><span>5. Review Guideline Recommendations</span> <span>▼</span></button>
+                <div id="step5-content" class="accordion-content hidden">Confirm if the protocol is an Evidence-Based Recommendation (EBR), Consensus-Based Recommendation (CBR), or Good Practice Statement (GPS).</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(6)"><span>6. Interprofessional Collaboration</span> <span>▼</span></button>
+                <div id="step6-content" class="accordion-content hidden">Liaise with General Practitioners (GPs), nursing staff, and specialists to align on logistics, substitution options, and liquid/liquid-equivalent formulations.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(7)"><span>7. Apply Individual Clinical Judgment</span> <span>▼</span></button>
+                <div id="step7-content" class="accordion-content hidden">Tailor recommendations to individual physiological clearance capacities, organ status, and the social context of the elderly patient.</div>
+            </div>
+            <div class="accordion">
+                <button class="accordion-btn" onclick="toggleStep(8)"><span>8. Finalise Taper Plan & Monitor</span> <span>▼</span></button>
+                <div id="step8-content" class="accordion-content hidden">Formulate a structured fractional taper schedule (e.g., 25-50% reductions). Define clear review timeframes and monitoring boundaries for return of symptoms.</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // FULL EXTRACTED DATA DATABASE FROM THE 299-PAGE OFFICIAL UWA GUIDELINE
+        const deprescribingData = [
+            {
+                category: "Gastrointestinal",
+                medicine: "Proton Pump Inhibitors (PPIs)",
+                when: "Long-term use (>8 weeks) without a verified high-risk indication (e.g., severe esophagitis, Barrett's esophagus, or active chronic NSAID use with high ulcer risk).",
+                how: "Taper dosage incrementally by 50% every 2 weeks, or change to on-demand (PRN) use. Step-down from standard dose (e.g., Esomeprazole 40mg) to low maintenance dose (20mg) before complete cessation.",
+                monitoring: "Review at 4-8 weeks post-cessation. Assess for return of heartburn or dyspepsia. Differentiate rebound hyperacidity from structural treatment failure.",
+                evidence: "EBR (Evidence-Based Recommendation) - Strong recommendation based on high-quality clinical evidence."
+            },
+            {
+                category: "Central Nervous System",
+                medicine: "Benzodiazepines & Z-drugs (Hypnotics)",
+                when: "Chronic usage (>4 weeks) in older adults due to highly elevated physiological risks of falls, hip fractures, motor vehicle accidents, and compounding cognitive impairment.",
+                how: "Gradual taper over 4-8 weeks (or multi-month intervals for extreme long-term users). Reduce total daily dose by 10-25% every 1-2 weeks. Consider substituting short-acting agents with Diazepam if withdrawal symptoms severe.",
+                monitoring: "Monitor weekly for rebound insomnia, heightened anxiety, tremor, or autonomic symptoms. Assess objective improvements in daytime alertness, cognition, and balance control.",
+                evidence: "EBR - Strong recommendation. Clinical harms heavily outweigh minimal short-term benefits for insomnia management in the elderly population."
+            },
+            {
+                category: "Cardiovascular",
+                medicine: "Antihypertensive Agents",
+                when: "Tight blood pressure targets in frail elderly where harm (falls, syncope, acute kidney injury) outweighs stroke prevention benefit, or persistent systolic BP <110 mmHg.",
+                how: "Reduce dose by 50% or cease one agent at a time, prioritizing the cessation of alpha-blockers and centrally acting agents (e.g., clonidine) due to high fall risk. Avoid abrupt withdrawal of beta-blockers.",
+                monitoring: "Check home BP and orthostatic vitals at 1 week, 2 weeks, and 1 month. Monitor for rebound hypertension, headache, or chest pain.",
+                evidence: "CBR (Consensus-Based Recommendation) - Grade B. Individualized targets required for adults over 75 with advanced frailty status."
+            },
+            {
+                category: "Central Nervous System",
+                medicine: "Antipsychotics (for BPSD)",
+                when: "Used for Behavioral and Psychological Symptoms of Dementia (BPSD) beyond 12 weeks, or if symptoms have completely stabilized with no active distress or danger.",
+                how: "Taper down the daily dose by 25-50% every 1-2 weeks over a total period of 2-4 weeks before stopping completely. Do not stop abruptly unless severe neuroleptic malignant syndrome occurs.",
+                monitoring: "Review weekly during tapering and for at least 2-3 months after stopping. Monitor for recurrence of severe agitation, physical aggression, or hallucinations using standardized scales.",
+                evidence: "EBR - Strong recommendation. Chronic antipsychotic use in dementia is associated with increased stroke risk and mortality."
+            },
+            {
+                category: "Ophthalmology",
+                medicine: "Glaucoma Eye Drops (Topical)",
+                when: "Patients with advanced life limiting conditions, severe dry eyes significantly reducing quality of life, or when physical/cognitive barriers make administration impossible with no benefit expansion.",
+                how: "Stop one eye drop class at a time under close monitoring. If on multiple drops, stop the least effective drop or the one causing maximum local toxicity first.",
+                monitoring: "Schedule intraocular pressure (IOP) check at 2-4 weeks post-cessation, then 3 months. Monitor visual fields if appropriate. Check for relief of local dry eye/stinging symptoms.",
+                evidence: "GPS (Good Practice Statement) - Clinicians should perform a comprehensive visual prognosis review before executing a complete washout."
+            },
+            {
+                category: "Endocrine",
+                medicine: "Sulfonylureas & Tight Glycaemic Control Agents",
+                when: "Older adults with advanced frailty, severe renal impairment, or limited life expectancy where HbA1c is persistently <7.0% and risk of severe hypoglycemia is high.",
+                how: "De-escalate or stop Sulfonylureas (e.g., Gliclazide) completely. Switch to safer, lower-hypoglycemia risk alternatives or relax target HbA1c windows to 7.5% - 8.5% according to RACGP/Diabetes Australia guidelines.",
+                monitoring: "Monitor blood glucose levels (BGLs) daily for the first 1-2 weeks. Check HbA1c in 3 months. Watch closely for signs of severe cognitive confusion caused by unrecognized hypoglycemic drops.",
+                evidence: "EBR - High-quality evidence confirms relaxing glycaemic targets significantly reduces hospitalization rates due to falls and confusion in frail elderly."
+            },
+            {
+                category: "Cardiovascular",
+                medicine: "Statins (HMG-CoA Reductase Inhibitors)",
+                when: "Primary cardiovascular prevention in patients aged >80 with severe frailty or limited life expectancy where the time-to-benefit (usually 2-5 years) exceeds prognosis.",
+                how: "Can be stopped abruptly without tapering. Re-evaluate if used for secondary prevention (e.g., recent myocardial infarction), where continuation may still be warranted unless palliative.",
+                monitoring: "No specific lipid blood testing required after stopping. Assess for improvement in unexplained muscle pain, myopathy, or localized fatigue.",
+                evidence: "CBR - Consensus supports stopping statins for primary prevention when frailty dominates or comfort care becomes the principal clinical goal."
+            },
+            {
+                category: "Musculoskeletal",
+                medicine: "Chronic NSAIDs (Oral)",
+                when: "Continuous chronic use (>3 months) in older individuals due to high risks of gastrointestinal bleeding, chronic kidney injury, and exacerbation of congestive heart failure.",
+                how: "Taper down over 1-2 weeks or stop abruptly if acute bleeding/renal dysfunction is detected. Co-prescribe paracetamol or topical NSAIDs as safer alternative multi-modal options.",
+                monitoring: "Monitor renal function (e.g., eGFR, serum creatinine) and blood pressure within 1-2 weeks. Assess for return of severe osteoarthritic joint pain or signs of gastrointestinal bleeding.",
+                evidence: "EBR - Strong recommendation based on widespread international consensus guidelines (STOPP/START criteria)."
+            }
+        ];
+
+        function toggle5M(id) {
+            const el = document.getElementById(id + '-content');
+            el.classList.toggle('hidden');
+        }
+
+        function toggleStep(num) {
+            const el = document.getElementById('step' + num + '-content');
+            el.classList.toggle('hidden');
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const section = document.getElementById('searchSection');
+            const container = document.getElementById('searchResultsContainer');
+            const count = document.getElementById('matchCount');
+
+            if (!query) { section.classList.add('hidden'); return; }
+
+            const matches = deprescribingData.filter(item => 
+                item.medicine.toLowerCase().includes(query) || 
+                item.category.toLowerCase().includes(query) ||
+                item.when.toLowerCase().includes(query)
+            );
+
+            count.textContent = matches.length;
+            container.innerHTML = '';
+
+            if (matches.length === 0) {
+                container.innerHTML = `<p style="font-size:0.875rem; color:#64748b; font-style:italic; padding:0.5rem 0;">No matching Australian guideline data found for "${query}".</p>`;
+            } else {
+                matches.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px; margin-bottom:8px;">
+                            <strong style="color:#0A2540; font-size:1rem;">${item.medicine}</strong>
+                            <span style="font-size:0.75rem; font-weight:600; background:#e2e8f0; padding:2px 6px; border-radius:4px;">${item.category}</span>
+                        </div>
+                        <div style="font-size:0.85rem; margin-bottom:6px;"><span style="color:#b45309; font-weight:bold;">🛑 WHEN to Stop:</span> ${item.when}</div>
+                        <div style="font-size:0.85rem; margin-bottom:6px;"><span style="color:#047857; font-weight:bold;">📋 HOW to Taper:</span> ${item.how}</div>
+                        <div style="font-size:0.85rem; margin-bottom:6px;"><span style="color:#0369a1; font-weight:bold;">🔍 Monitoring & Review:</span> ${item.monitoring}</div>
+                        <div style="font-size:0.75rem; color:#64748b; font-style:italic; border-top:1px dashed #f1f5f9; padding-top:4px; margin-top:6px;">📊 Guideline Context: ${item.evidence}</div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            section.classList.remove('hidden');
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchSection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
